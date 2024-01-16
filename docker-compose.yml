@@ -1,0 +1,27 @@
+version: '3'
+services:
+  pics_io_backend:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: production
+    env_file:
+      - .env
+    ports:
+      - 3000:3000
+    depends_on:
+      - pics_io_db
+
+  pics_io_db:
+    image: mongo:4.2.23-bionic
+    container_name: pics_io_db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo -u root -p root --quiet) -eq 1
+      interval: 10s
+      start_period: 30s
+    volumes:
+      - ./docker/mongodb/volume/data:/data
